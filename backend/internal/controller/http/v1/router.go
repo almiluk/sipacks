@@ -17,10 +17,12 @@ import (
 
 // NewRouter -.
 // Swagger spec:
-// @title       API for managing question packs for the "SIGame" game
-// @version     1.0
-// @host        localhost:8080
-// @BasePath    /v1
+// @title       	API for managing question packs for the 'SIGame' game
+// @version     	0.0.0
+// @contact.name   	almiluk
+// @contact.email  	almiluk@gmail.com
+// @host        	localhost:8080
+// @BasePath    	/
 func NewRouter(handler *echo.Echo, cfg config.HTTP, l logger.Interface, uc controller.IPacksUC) {
 	handler.Debug = cfg.Debug
 
