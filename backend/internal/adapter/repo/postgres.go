@@ -95,15 +95,44 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 }
 
 func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) ([]entity.Pack, error) {
-	sql, args, err := pg.Builder.
-		Select("pack.id", "pack.name", "author.nickname", "pack.creation_date", "pack.file_size", "pack.downloads_num").
+	builder := pg.Builder.
+		Select("pack.id", "pack.name", "author.id", "author.nickname", "pack.creation_date", "pack.file_size", "pack.downloads_num").
 		From("pack").
-		Join("author ON pack.author_id = author.id").
-		Where("pack.name LIKE ?", "%"+filter.Name+"%").
-		OrderBy("pack.id").
-		ToSql()
+		Join("author ON pack.author_id = author.id")
+
+	if filter.Name != nil {
+		builder = builder.Where("LOWER(pack.name) LIKE '%' || ?|| '%'", filter.Name)
+	}
+	if filter.Author != nil {
+		builder = builder.Where("author.nickname = ?", filter.Author)
+	}
+	if filter.MinCreationDate != nil {
+		builder = builder.Where("pack.creation_date >= ?", filter.MinCreationDate)
+	}
+	if filter.MaxCreationDate != nil {
+		builder = builder.Where("pack.creation_date <= ?", filter.MaxCreationDate)
+	}
+
+	// TODO: filter.Tags
+	if filter.Tags != nil && len(filter.Tags) > 0 {
+		builder = builder.Join("pack_tag ON pack.id = pack_tag.pack_id").
+			Join("tag ON pack_tag.tag_id = tag.id").
+			Where("tag.name =ANY (?)", filter.Tags).
+			GroupBy("pack.id", "author.id").
+			Having("COUNT(pack_tag.tag_id) = ?", len(filter.Tags))
+	}
+
+	if filter.SortBy == nil || *filter.SortBy == "" {
+		builder = builder.OrderBy("pack.id")
+	} else if *filter.SortBy == "creation_date" {
+		builder = builder.OrderBy("pack.creation_date DESC")
+	} else if *filter.SortBy == "downloads_num" {
+		builder = builder.OrderBy("pack.downloads_num DESC")
+	}
+
+	sql, args, err := builder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("PostgresRepo - GetPacks - Select: %w", err)
+		return nil, fmt.Errorf("PostgresRepo - GetPacks - builder.ToSql: %w", err)
 	}
 
 	rows, err := pg.Pool.Query(ctx, sql, args...)
@@ -115,7 +144,7 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	packs := []entity.Pack{}
 	for rows.Next() {
 		var pack entity.Pack
-		err = rows.Scan(&pack.Id, &pack.Name, &pack.Author.Nickname, &pack.CreationDate, &pack.FileSize, &pack.DownloadsNum)
+		err = rows.Scan(&pack.Id, &pack.Name, &pack.Author.Id, &pack.Author.Nickname, &pack.CreationDate, &pack.FileSize, &pack.DownloadsNum)
 		if err != nil {
 			return nil, fmt.Errorf("PostgresRepo - GetPacks - rows.Scan: %w", err)
 		}

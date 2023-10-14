@@ -18,12 +18,12 @@ type Pack struct {
 }
 
 type PackFilter struct {
-	Name            string    `json:"name"`
-	Author          string    `json:"author"`
-	Tags            []string  `json:"tags"`
-	MinCreationDate time.Time `json:"min_creation_date"`
-	MaxCreationDate time.Time `json:"max_creation_date"`
-	SortBy          string    `json:"sort_by" enums:"creation_date,downloads_num"`
+	Name            *string    `json:"name"`
+	Author          *string    `json:"author"`
+	Tags            []string   `json:"tags"`
+	MinCreationDate *time.Time `json:"min_creation_date"`
+	MaxCreationDate *time.Time `json:"max_creation_date"`
+	SortBy          *string    `json:"sort_by" enums:"creation_date,downloads_num"`
 }
 
 type Tag struct {
