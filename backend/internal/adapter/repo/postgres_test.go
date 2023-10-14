@@ -18,7 +18,7 @@ import (
 
 const (
 	pgURL   = "postgres://user:pass@localhost:5432/postgres"
-	poolMax = 2
+	poolMax = 10
 )
 
 var pgRepo *repo.PostgresRepo
@@ -314,11 +314,23 @@ func TestPostgresRepo_GetPacks(t *testing.T) {
 }
 
 func ComparePacks(p1, p2 entity.Pack) bool {
-	return p1.Id == p2.Id &&
+	same := p1.Id == p2.Id &&
 		p1.Name == p2.Name &&
 		p1.Author.Id == p2.Author.Id &&
 		p1.Author.Nickname == p2.Author.Nickname &&
 		p1.CreationDate == p2.CreationDate &&
 		p1.FileSize == p2.FileSize &&
-		p1.DownloadsNum == p2.DownloadsNum
+		p1.DownloadsNum == p2.DownloadsNum &&
+		len(p1.Tags) == len(p2.Tags)
+
+	if same {
+		for i, tag := range p1.Tags {
+			if tag != p2.Tags[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	return same
 }
