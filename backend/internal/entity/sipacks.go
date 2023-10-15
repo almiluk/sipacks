@@ -9,6 +9,7 @@ type Author struct {
 
 type Pack struct {
 	Id           uint32    `json:"id"`
+	GUID         string    `json:"guid"`
 	Name         string    `json:"name"`
 	Author       Author    `json:"author"`
 	CreationDate time.Time `json:"creation_date"`
