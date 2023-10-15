@@ -24,14 +24,13 @@ const (
 var pgRepo *repo.PostgresRepo
 
 func TestMain(m *testing.M) {
+	var err error
 	// setup
-	pg, err := postgres.New(pgURL, postgres.MaxPoolSize(poolMax))
+	pgRepo, err = repo.NewPGRepo(pgURL, postgres.MaxPoolSize(poolMax))
 	if err != nil {
 		log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
 	}
-	defer pg.Close()
-
-	pgRepo = repo.New(pg)
+	defer pgRepo.Close()
 	// run tests
 	os.Exit(m.Run())
 	// teardown

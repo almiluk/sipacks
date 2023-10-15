@@ -14,8 +14,14 @@ type PostgresRepo struct {
 	*postgres.Postgres
 }
 
-func New(pg *postgres.Postgres) *PostgresRepo {
-	return &PostgresRepo{pg}
+func NewPGRepo(url string, opts ...postgres.Option) (*PostgresRepo, error) {
+	pg, err := postgres.New(url, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("PostgresRepo - New - postgres.New: %w", err)
+	}
+	return &PostgresRepo{
+		Postgres: pg,
+	}, nil
 }
 
 func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
