@@ -2,7 +2,7 @@ version: '3.9'
 services:
 
   postgres:
-    container_name: postgres
+    container_name: sipacks-postgres
     image: postgres
     volumes:
       - pg-data:/var/lib/postgresql/data
@@ -15,8 +15,8 @@ services:
 
   app:
     build: .
-    container_name: app
-    image: app
+    container_name: sipacks-backend
+    image: sipacks-backend
     environment:
       PG_URL: 'postgres://user:pass@postgres:5432/postgres'
     ports:

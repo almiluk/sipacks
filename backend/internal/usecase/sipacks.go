@@ -1,8 +1,11 @@
 package usecase
 
 type PacksUC struct {
+	repo IRepo
 }
 
-func New() *PacksUC {
-	return &PacksUC{}
+func New(repo IRepo) *PacksUC {
+	return &PacksUC{
+		repo: repo,
+	}
 }
