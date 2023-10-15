@@ -63,8 +63,8 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 	// Add pack
 	sql, args, err := pg.Builder.
 		Insert("pack").
-		Columns("name", "author_id", "creation_date", "file_size", "downloads_num").
-		Values(pack.Name, pack.Author.Id, pack.CreationDate, pack.FileSize, 0).
+		Columns("name", "author_id", "creation_date", "file_size", "downloads_num", "guid").
+		Values(pack.Name, pack.Author.Id, pack.CreationDate, pack.FileSize, 0, pack.GUID).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 	if err != nil {
@@ -108,7 +108,7 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	defer tx.Rollback(ctx)
 
 	builder := pg.Builder.
-		Select("pack.id", "pack.name", "author.id", "author.nickname", "pack.creation_date", "pack.file_size", "pack.downloads_num").
+		Select("pack.id", "pack.name", "author.id", "author.nickname", "pack.creation_date", "pack.file_size", "pack.downloads_num", "pack.guid").
 		From("pack").
 		Join("author ON pack.author_id = author.id")
 
@@ -157,7 +157,7 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	for rows.Next() {
 		err = rows.Scan(
 			&pack.Id, &pack.Name, &pack.Author.Id, &pack.Author.Nickname,
-			&pack.CreationDate, &pack.FileSize, &pack.DownloadsNum,
+			&pack.CreationDate, &pack.FileSize, &pack.DownloadsNum, &pack.GUID,
 		)
 
 		if err != nil {
