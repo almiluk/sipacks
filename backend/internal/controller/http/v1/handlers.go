@@ -22,11 +22,12 @@ func addPack(ctx echo.Context) error {
 // @Description Download questions pack
 // @Tags packs
 // @Produce octet-stream
-// @Param id path int true "Pack ID"
+// @Param guid path int true "Pack guid"
+// @Param filename query string false "Wanted package file name"
 // @Success 200
 // @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /packs/{id} [get]
+// @Router /packs/{guid} [get]
 func downloadPack(ctx echo.Context) error {
 	return nil
 }

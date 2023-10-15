@@ -106,7 +106,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/packs/{id}": {
+        "/packs/{guid}": {
             "get": {
                 "description": "Download questions pack",
                 "produces": [
@@ -119,10 +119,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Pack ID",
-                        "name": "id",
+                        "description": "Pack guid",
+                        "name": "guid",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Wanted package file name",
+                        "name": "filename",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -247,6 +253,10 @@ const docTemplate = `{
                 "file_size": {
                     "type": "integer",
                     "example": 0
+                },
+                "guid": {
+                    "type": "string",
+                    "example": "00000000-0000-0000-0000-000000000000"
                 },
                 "name": {
                     "type": "string",
