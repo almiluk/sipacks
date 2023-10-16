@@ -5,10 +5,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func responseWithError(c echo.Context, code int, msg string, err error) error {
+func responseWithError(ctx echo.Context, code int, msg string, err error) error {
 	response := models.ErrorResponse{Message: msg}
-	if c.Echo().Debug {
+	if ctx.Echo().Debug {
 		response.Error = err.Error()
 	}
-	return c.JSON(code, response)
+	return ctx.JSON(code, response)
 }

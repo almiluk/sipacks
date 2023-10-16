@@ -4,6 +4,7 @@ package repo_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -182,6 +183,12 @@ func TestPostgresRepo_AddPack(t *testing.T) {
 		if tag.Id != pack.Tags[i].Id {
 			t.Errorf("tag.Id != pack.Tags[i].Id: %d != %d", tag.Id, pack.Tags[i].Id)
 		}
+	}
+
+	// Try to add the same pack again
+	err = pgRepo.AddPack(ctx, &pack)
+	if !errors.Is(err, entity.ErrPackAlreadyExists) {
+		t.Fatal(err)
 	}
 }
 
