@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -71,7 +72,7 @@ func TestGetPackFileInfo(t *testing.T) {
 		}
 
 		fileInfo, err := usecase.GetPackFileInfo(file, fileStat.Size())
-		if err != tc.err {
+		if errors.Is(err, tc.err) {
 			t.Fatalf("expected not nil error: %v, got: %v", tc.err, err)
 		}
 
@@ -85,9 +86,9 @@ func TestGetPackFileInfo(t *testing.T) {
 }
 
 func ComparePacks(p1, p2 entity.Pack) bool {
-	same := p1.Id == p2.Id &&
+	same := p1.ID == p2.ID &&
 		p1.Name == p2.Name &&
-		p1.Author.Id == p2.Author.Id &&
+		p1.Author.ID == p2.Author.ID &&
 		p1.Author.Nickname == p2.Author.Nickname &&
 		p1.CreationDate == p2.CreationDate &&
 		p1.FileSize == p2.FileSize &&

@@ -6,12 +6,12 @@ import (
 )
 
 type Author struct {
-	Id       uint32
+	ID       uint32
 	Nickname string
 }
 
 type Pack struct {
-	Id           uint32    `json:"id"`
+	ID           uint32    `json:"id"`
 	GUID         string    `json:"guid"`
 	Name         string    `json:"name"`
 	Author       Author    `json:"author"`
@@ -31,7 +31,7 @@ type PackFilter struct {
 }
 
 type Tag struct {
-	Id   uint32
+	ID   uint32
 	Name string
 }
 
