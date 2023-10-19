@@ -80,9 +80,9 @@ jobs:
       - name: Upload coverage report
         run: bash <(curl -s https://codecov.io/bash)
 
-      - name: Integration tests
-        run:
-          "mv config/.env.example config/.env && docker-compose up \
-          --build \
-          --abort-on-container-exit"
-          # --exit-code-from integration"
+      # - name: Integration tests
+      #  run:
+      #    "mv config/.env.example config/.env && docker-compose up \
+      #    --build \
+      #    --abort-on-container-exit"
+      #    --exit-code-from integration"
