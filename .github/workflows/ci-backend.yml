@@ -16,6 +16,7 @@ jobs:
         uses: reviewdog/action-golangci-lint@v2
         with:
           workdir: ./backend
+          args: --timeout=3m
 
   yamllint:
     name: runner / yamllint
