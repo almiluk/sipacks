@@ -9,7 +9,7 @@ FROM golang:1.17.1-alpine3.14 as builder
 COPY --from=modules /go/pkg /go/pkg
 COPY . /app
 WORKDIR /app
-CMD ["mv", "config/.env.example", "config/.env"]
+COPY /app/config/.env.example /app/config/.env
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -tags migrate -o /bin/app ./cmd/app
 
