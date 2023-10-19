@@ -72,7 +72,7 @@ func TestGetPackFileInfo(t *testing.T) {
 		}
 
 		fileInfo, err := usecase.GetPackFileInfo(file, fileStat.Size())
-		if errors.Is(err, tc.err) {
+		if !errors.Is(err, tc.err) {
 			t.Fatalf("expected not nil error: %v, got: %v", tc.err, err)
 		}
 
