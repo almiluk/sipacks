@@ -28,16 +28,23 @@ func TestMain(m *testing.M) {
 	var err error
 	// setup
 	pgRepo, err = repo.NewPGRepo(pgURL, postgres.MaxPoolSize(poolMax))
+
+	// FIXME:
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
+		//log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
+	} else {
+		defer pgRepo.Close()
 	}
-	defer pgRepo.Close()
 	// run tests
 	os.Exit(m.Run())
 	// teardown
 }
 
-func TestPostgresRepo_AddPack(t *testing.T) {
+func initRepo() {
+
+}
+
+func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	ctx := context.Background()
 	batch := pgx.Batch{}
 	// Delete pack
@@ -192,7 +199,7 @@ func TestPostgresRepo_AddPack(t *testing.T) {
 	}
 }
 
-func TestPostgresRepo_GetPacks(t *testing.T) {
+func TestPostgresRepo_GetPacks_Manual(t *testing.T) {
 	packs := []entity.Pack{
 		{
 			Name:         "name1",
