@@ -81,7 +81,7 @@ jobs:
 
       - name: Integration tests
         run:
-          "docker-compose up \
+          "mv config/.env.example config/.env && docker-compose up \
           --build \
           --abort-on-container-exit"
           # --exit-code-from integration"
