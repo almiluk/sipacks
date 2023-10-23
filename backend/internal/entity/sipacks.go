@@ -1,9 +1,6 @@
 package entity
 
-import (
-	"io"
-	"time"
-)
+import "time"
 
 type Author struct {
 	Id       uint32
@@ -33,9 +30,4 @@ type PackFilter struct {
 type Tag struct {
 	Id   uint32
 	Name string
-}
-
-type ReaderReadAt interface {
-	io.Reader
-	io.ReaderAt
 }

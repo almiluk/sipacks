@@ -21,6 +21,33 @@ definitions:
         example: message
         type: string
     type: object
+  models.PackListRequest:
+    properties:
+      author:
+        example: author
+        type: string
+      max_creation_date:
+        example: 01.01.1970
+        type: string
+      min_creation_date:
+        example: 01.01.1970
+        type: string
+      name:
+        example: name
+        type: string
+      sort_by:
+        enum:
+        - creation_date
+        - downloads_num
+        example: creation_date
+        type: string
+      tags:
+        example:
+        - tags
+        items:
+          type: string
+        type: array
+    type: object
   models.PackListResponse:
     properties:
       packs:
@@ -51,13 +78,6 @@ definitions:
       name:
         example: name
         type: string
-      tags:
-        example:
-        - tag1
-        - tag2
-        items:
-          type: string
-        type: array
     type: object
 host: localhost:8080
 info:
@@ -73,33 +93,12 @@ paths:
       - application/json
       description: List packs with filters
       parameters:
-      - example: author
-        in: query
-        name: author
-        type: string
-      - example: 01.01.1970
-        in: query
-        name: max_creation_date
-        type: string
-      - example: 01.01.1970
-        in: query
-        name: min_creation_date
-        type: string
-      - example: name
-        in: query
-        name: name
-        type: string
-      - enum:
-        - creation_date
-        - downloads_num
-        example: creation_date
-        in: query
-        name: sort_by
-        type: string
-      - example: tag1,tag2
-        in: query
-        name: tags
-        type: string
+      - description: Filter
+        in: body
+        name: filter
+        required: true
+        schema:
+          $ref: '#/definitions/models.PackListRequest'
       produces:
       - application/json
       responses:
@@ -139,10 +138,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/models.PackResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -155,23 +150,23 @@ paths:
       description: Download questions pack
       parameters:
       - description: Pack guid
-        format: uuid
         in: path
         name: guid
         required: true
-        type: string
+        type: integer
       - description: Wanted package file name
         in: query
         name: filename
         type: string
       produces:
       - application/octet-stream
-      - application/json
       responses:
         "200":
           description: OK
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:

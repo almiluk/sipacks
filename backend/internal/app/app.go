@@ -30,10 +30,7 @@ func Run(cfg *config.Config) {
 	defer pg.Close()
 
 	// Use case
-	translationUseCase, err := usecase.New(pg, cfg.FileStoragePath)
-	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - usecase.New: %w", err))
-	}
+	translationUseCase := usecase.New(pg)
 
 	// HTTP Server
 	handler := echo.New()

@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/almiluk/sipacks/internal/entity"
 	"github.com/almiluk/sipacks/pkg/postgres"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -74,13 +72,6 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 	}
 
 	err = tx.QueryRow(ctx, sql, args...).Scan(&pack.Id)
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-		return fmt.Errorf("PostgresRepo - AddPack - tx.QueryRow: %w", entity.ErrPackAlreadyExists)
-	} else if err != nil {
-		return fmt.Errorf("PostgresRepo - AddPack - tx.QueryRow: %w", err)
-	}
-
 	if err != nil {
 		return fmt.Errorf("PostgresRepo - AddPack - tx.QueryRow: %w", err)
 	}
@@ -265,21 +256,4 @@ func (pg *PostgresRepo) getPackTags(ctx context.Context, tx pgx.Tx, id uint32) (
 	}
 
 	return tags, nil
-}
-
-func (pg *PostgresRepo) IncreaseDownloadsCounter(ctx context.Context, guid string) error {
-	sql, args, err := pg.Builder.Update("pack").
-		Set("downloads_num", squirrel.Expr("downloads_num + 1")).
-		Where("guid = ?", guid).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("PostgresRepo - IncreaseDownloadsCounter - ToSql: %w", err)
-	}
-
-	_, err = pg.Pool.Exec(ctx, sql, args...)
-	if err != nil {
-		return fmt.Errorf("PostgresRepo - IncreaseDownloadsCounter - pg.Pool.Exec: %w", err)
-	}
-
-	return nil
 }

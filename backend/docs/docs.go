@@ -33,44 +33,13 @@ const docTemplate = `{
                 "summary": "List packs",
                 "parameters": [
                     {
-                        "type": "string",
-                        "example": "author",
-                        "name": "author",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "01.01.1970",
-                        "name": "max_creation_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "01.01.1970",
-                        "name": "min_creation_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "creation_date",
-                            "downloads_num"
-                        ],
-                        "type": "string",
-                        "example": "creation_date",
-                        "name": "sort_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "tag1,tag2",
-                        "name": "tags",
-                        "in": "query"
+                        "description": "Filter",
+                        "name": "filter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PackListRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -128,12 +97,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/models.PackResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -147,8 +110,7 @@ const docTemplate = `{
             "get": {
                 "description": "Download questions pack",
                 "produces": [
-                    "application/octet-stream",
-                    "application/json"
+                    "application/octet-stream"
                 ],
                 "tags": [
                     "packs"
@@ -156,8 +118,7 @@ const docTemplate = `{
                 "summary": "Download pack",
                 "parameters": [
                     {
-                        "type": "string",
-                        "format": "uuid",
+                        "type": "integer",
                         "description": "Pack guid",
                         "name": "guid",
                         "in": "path",
@@ -175,7 +136,10 @@ const docTemplate = `{
                         "description": "OK"
                     },
                     "404": {
-                        "description": "Not Found"
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -215,6 +179,44 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "message"
+                }
+            }
+        },
+        "models.PackListRequest": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "author"
+                },
+                "max_creation_date": {
+                    "type": "string",
+                    "example": "01.01.1970"
+                },
+                "min_creation_date": {
+                    "type": "string",
+                    "example": "01.01.1970"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "name"
+                },
+                "sort_by": {
+                    "type": "string",
+                    "enum": [
+                        "creation_date",
+                        "downloads_num"
+                    ],
+                    "example": "creation_date"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "tags"
+                    ]
                 }
             }
         },
@@ -259,16 +261,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "name"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "tag1",
-                        "tag2"
-                    ]
                 }
             }
         }

@@ -15,7 +15,7 @@ type AddPackResponse struct {
 
 type PackListResponse struct {
 	Packs    []PackResponse `json:"packs"`
-	PacksNum int            `json:"packs_num" example:"0"`
+	PacksNum uint32         `json:"packs_num" example:"0"`
 }
 
 type PackResponse struct {
@@ -25,5 +25,4 @@ type PackResponse struct {
 	CreationDate time.Time `json:"creation_date" example:"creation_date"`
 	FileSize     uint32    `json:"file_size" example:"0"`
 	DownloadsNum uint32    `json:"downloads_num" example:"0"`
-	Tags         []string  `json:"tags" example:"tag1,tag2"`
 }

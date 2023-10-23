@@ -18,9 +18,8 @@ type (
 
 	// App -.
 	App struct {
-		Name            string `env-required:"true" env:"APP_NAME"`
-		Version         string `env-required:"true" env:"APP_VERSION"`
-		FileStoragePath string `env-required:"true" env:"FILE_STORAGE_PATH"`
+		Name    string `env-required:"true" env:"APP_NAME"`
+		Version string `env-required:"true" env:"APP_VERSION"`
 	}
 
 	// HTTP -.

@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/almiluk/sipacks/config"
+	"github.com/almiluk/sipacks/internal/controller"
 
 	// Swagger docs.
 	_ "github.com/almiluk/sipacks/docs"
@@ -22,7 +23,7 @@ import (
 // @contact.email  	almiluk@gmail.com
 // @host        	localhost:8080
 // @BasePath    	/
-func NewRouter(handler *echo.Echo, cfg config.HTTP, l logger.Interface, uc ISIPacksUC) {
+func NewRouter(handler *echo.Echo, cfg config.HTTP, l logger.Interface, uc controller.IPacksUC) {
 	handler.Debug = cfg.Debug
 
 	// Options
@@ -33,7 +34,4 @@ func NewRouter(handler *echo.Echo, cfg config.HTTP, l logger.Interface, uc ISIPa
 	if cfg.EnableSwagger {
 		handler.GET("/swagger/*", echoSwagger.WrapHandler)
 	}
-
-	// Routes
-	RegisterSIPacksRouter(handler, uc)
 }
