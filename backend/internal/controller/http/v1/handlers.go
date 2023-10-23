@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/almiluk/sipacks/internal/controller/http/v1/models"
@@ -38,21 +37,20 @@ func RegisterSIPacksRouter(handler *echo.Echo, uc ISIPacksUC) {
 func (r SIPacksRouter) addPack(ctx echo.Context) error {
 	packFile, err := ctx.FormFile("pack")
 	if err != nil {
-		return responseWithError(ctx, http.StatusBadRequest, "Request must contain pack file", err)
+		return responseWithError(ctx, 400, "Request must contain pack file", err)
 	}
 
 	file, err := packFile.Open()
 	if err != nil {
-		return responseWithError(ctx, http.StatusInternalServerError, "Can't open pack file", err)
+		return responseWithError(ctx, 500, "Can't open pack file", err)
 	}
 	defer file.Close()
 
 	pack, err := r.uc.AddPack(ctx.Request().Context(), file, packFile.Size)
 	if err != nil {
-		return responseWithError(ctx, http.StatusInternalServerError, "Can't add pack", err)
+		return responseWithError(ctx, 500, "Can't add pack", err)
 	}
-
-	return ctx.JSON(http.StatusOK, pack)
+	return ctx.JSON(200, pack)
 }
 
 // downloadPack godoc
@@ -69,21 +67,18 @@ func (r SIPacksRouter) addPack(ctx echo.Context) error {
 // @Router /packs/{guid} [get]
 func (r SIPacksRouter) downloadPack(ctx echo.Context) error {
 	guid := ctx.Param("guid")
-
 	downloadFilename := ctx.QueryParam("filename")
 	if downloadFilename == "" {
 		downloadFilename = guid + ".siq"
 	}
 
 	storedFilename := r.uc.GetPackFilename(ctx.Request().Context(), guid)
-
 	err := ctx.Attachment(storedFilename, downloadFilename)
 	if err != nil {
 		return err
 	}
 
 	err = r.uc.IncreaseDownloadsCounter(ctx.Request().Context(), guid)
-
 	return err
 }
 
@@ -101,7 +96,7 @@ func (r SIPacksRouter) downloadPack(ctx echo.Context) error {
 func (r SIPacksRouter) listPacks(ctx echo.Context) error {
 	var filterBody models.PackListRequest
 	if err := ctx.Bind(&filterBody); err != nil {
-		return responseWithError(ctx, http.StatusBadRequest, "Incorrect filter", err)
+		return responseWithError(ctx, 400, "Incorrect filter", err)
 	}
 
 	filter := entity.PackFilter{
@@ -118,7 +113,7 @@ func (r SIPacksRouter) listPacks(ctx echo.Context) error {
 
 	packs, err := r.uc.GetPacks(ctx.Request().Context(), filter)
 	if err != nil {
-		return responseWithError(ctx, http.StatusInternalServerError, "Cannot find packs", err)
+		return responseWithError(ctx, 500, "Cannot find packs", err)
 	}
 
 	packsResponse := make([]models.PackResponse, len(packs))
@@ -137,5 +132,5 @@ func (r SIPacksRouter) listPacks(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, models.PackListResponse{Packs: packsResponse, PacksNum: len(packs)})
+	return ctx.JSON(200, models.PackListResponse{Packs: packsResponse, PacksNum: len(packs)})
 }

@@ -25,28 +25,19 @@ const (
 var pgRepo *repo.PostgresRepo
 
 func TestMain(m *testing.M) {
+	var err error
 	// setup
-	pgRepo, _ := repo.NewPGRepo(pgURL, postgres.MaxPoolSize(poolMax))
-
-	// FIXME:
-	/*
-		if err != nil {
-			log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
-		} else {
-			defer pgRepo.Close()
-		}
-	*/
-	// run tests
-	code := m.Run()
-	// teardown
-	if pgRepo != nil {
-		pgRepo.Close()
+	pgRepo, err = repo.NewPGRepo(pgURL, postgres.MaxPoolSize(poolMax))
+	if err != nil {
+		log.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
 	}
-
-	os.Exit(code)
+	defer pgRepo.Close()
+	// run tests
+	os.Exit(m.Run())
+	// teardown
 }
 
-func TestPostgresRepo_AddPack_Manual(t *testing.T) {
+func TestPostgresRepo_AddPack(t *testing.T) {
 	ctx := context.Background()
 	batch := pgx.Batch{}
 	// Delete pack
@@ -54,7 +45,6 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	batch.Queue(sql, args...)
 
 	// Delete author
@@ -62,7 +52,6 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	batch.Queue(sql, args...)
 
 	// Delete tags
@@ -70,12 +59,11 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	batch.Queue(sql, args...)
 
 	result := pgRepo.Pool.SendBatch(ctx, &batch)
 	defer func() {
-		err = result.Close()
+		err := result.Close()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -101,7 +89,6 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	// Check insertion
 
 	log.Printf("pack: %+v\n", pack)
-
 	// Check author
 	sql, args, err = pgRepo.Builder.Select("id", "nickname").From("author").Where("nickname = ?", "author").ToSql()
 	if err != nil {
@@ -109,8 +96,7 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	}
 
 	var author entity.Author
-
-	err = pgRepo.Pool.QueryRow(ctx, sql, args...).Scan(&author.ID, &author.Nickname)
+	err = pgRepo.Pool.QueryRow(ctx, sql, args...).Scan(&author.Id, &author.Nickname)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,15 +118,12 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	defer rows.Close()
 
 	readTags := []entity.Tag{}
-
 	for rows.Next() {
 		var tag entity.Tag
-
-		err = rows.Scan(&tag.ID, &tag.Name)
+		err = rows.Scan(&tag.Id, &tag.Name)
 		if err != nil {
 			t.Fatal(err)
 		}
-
 		readTags = append(readTags, tag)
 	}
 
@@ -151,7 +134,7 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	}
 
 	// Check pack_tag
-	sql, args, err = pgRepo.Builder.Select("pack_id", "tag_id").From("pack_tag").Where("pack_id = ?", pack.ID).OrderBy("tag_id").ToSql()
+	sql, args, err = pgRepo.Builder.Select("pack_id", "tag_id").From("pack_tag").Where("pack_id = ?", pack.Id).OrderBy("tag_id").ToSql()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,21 +146,18 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	defer rows.Close()
 
 	readPackTag := [][]int{}
-
 	for rows.Next() {
-		var packID, tagID int
-
-		err = rows.Scan(&packID, &tagID)
+		var packId, tagId int
+		err = rows.Scan(&packId, &tagId)
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		readPackTag = append(readPackTag, []int{packID, tagID})
+		readPackTag = append(readPackTag, []int{packId, tagId})
 	}
 
 	for i, packTag := range readPackTag {
-		if packTag[0] != int(pack.ID) || packTag[1] != int(pack.Tags[i].ID) {
-			t.Errorf("incorrect pack_tag: pack.Id==%d, pack.Tags[i].Id==%d, packTag[0]==%d, packTag[1]==%d", pack.ID, pack.Tags[i].ID, packTag[0], packTag[1])
+		if packTag[0] != int(pack.Id) || packTag[1] != int(pack.Tags[i].Id) {
+			t.Errorf("incorrect pack_tag: pack.Id==%d, pack.Tags[i].Id==%d, packTag[0]==%d, packTag[1]==%d", pack.Id, pack.Tags[i].Id, packTag[0], packTag[1])
 		}
 	}
 
@@ -196,12 +176,12 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	}
 
 	if pack2.Author != pack.Author {
-		t.Errorf("pack2.Author.Id != pack.Author.Id: %d != %d", pack2.Author.ID, pack.Author.ID)
+		t.Errorf("pack2.Author.Id != pack.Author.Id: %d != %d", pack2.Author.Id, pack.Author.Id)
 	}
 
 	for i, tag := range pack2.Tags {
-		if tag.ID != pack.Tags[i].ID {
-			t.Errorf("tag.Id != pack.Tags[i].Id: %d != %d", tag.ID, pack.Tags[i].ID)
+		if tag.Id != pack.Tags[i].Id {
+			t.Errorf("tag.Id != pack.Tags[i].Id: %d != %d", tag.Id, pack.Tags[i].Id)
 		}
 	}
 
@@ -212,7 +192,7 @@ func TestPostgresRepo_AddPack_Manual(t *testing.T) {
 	}
 }
 
-func TestPostgresRepo_GetPacks_Manual(t *testing.T) {
+func TestPostgresRepo_GetPacks(t *testing.T) {
 	packs := []entity.Pack{
 		{
 			Name:         "name1",
@@ -255,15 +235,11 @@ func TestPostgresRepo_GetPacks_Manual(t *testing.T) {
 
 	// Clear pack db table
 	ctx := context.Background()
-
 	sql, args, err := pgRepo.Builder.Delete("pack").ToSql()
-
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	_, err = pgRepo.Pool.Exec(ctx, sql, args...)
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,22 +312,21 @@ func TestPostgresRepo_GetPacks_Manual(t *testing.T) {
 
 		if len(result) != len(tc.want) {
 			t.Errorf("%s: len(result) != len(tc.want): %d != %d", tc.name, len(result), len(tc.want))
-
 			continue
 		}
 
-		for i := range result {
-			if !ComparePacks(&result[i], &tc.want[i]) {
-				t.Errorf("%s: pack != tc.want: %+v != %+v", tc.name, result[i], tc.want[i])
+		for i, pack := range result {
+			if !ComparePacks(pack, tc.want[i]) {
+				t.Errorf("%s: pack != tc.want: %+v != %+v", tc.name, pack, tc.want[i])
 			}
 		}
 	}
 }
 
-func ComparePacks(p1, p2 *entity.Pack) bool {
-	same := p1.ID == p2.ID &&
+func ComparePacks(p1, p2 entity.Pack) bool {
+	same := p1.Id == p2.Id &&
 		p1.Name == p2.Name &&
-		p1.Author.ID == p2.Author.ID &&
+		p1.Author.Id == p2.Author.Id &&
 		p1.Author.Nickname == p2.Author.Nickname &&
 		p1.CreationDate == p2.CreationDate &&
 		p1.FileSize == p2.FileSize &&
@@ -364,7 +339,6 @@ func ComparePacks(p1, p2 *entity.Pack) bool {
 				return false
 			}
 		}
-
 		return true
 	}
 

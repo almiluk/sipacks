@@ -14,17 +14,13 @@ const (
 	packInfoFileName = "content.xml"
 )
 
-var (
-	ErrNoContentXMLFile = errors.New("incorrect pack file structure: no content.xml file")
-)
-
-// godoc PackFileXMLInfo
-// PackFileXMLInfo is a struct for parsing the content.xml file describing the pack.
-type PackFileXMLInfo struct {
+// godoc PackFileXmlInfo
+// PackFileXmlInfo is a struct for parsing the content.xml file describing the pack.
+type PackFileXmlInfo struct {
 	XMLName xml.Name `xml:"package"`
 	Name    string   `xml:"name,attr"`
 	Date    string   `xml:"date,attr"`
-	ID      string   `xml:"id,attr"`
+	Id      string   `xml:"id,attr"`
 	Info    struct {
 		XMLName xml.Name `xml:"info"`
 		Authors struct {
@@ -59,35 +55,34 @@ func GetPackFileInfo(fileReader io.ReaderAt, fileSize int64) (entity.Pack, error
 				return entity.Pack{}, err
 			}
 
-			packXMLInfo := PackFileXMLInfo{}
-			if err = xml.Unmarshal(byteValue, &packXMLInfo); err != nil {
+			packXmlInfo := PackFileXmlInfo{}
+			if err := xml.Unmarshal(byteValue, &packXmlInfo); err != nil {
 				return entity.Pack{}, err
 			}
-
 			res := entity.Pack{
-				Name:     packXMLInfo.Name,
+				Name:     packXmlInfo.Name,
 				FileSize: uint32(fileSize),
-				GUID:     packXMLInfo.ID,
-				Tags:     make([]entity.Tag, len(packXMLInfo.Tags.Tags)),
+				GUID:     packXmlInfo.Id,
+				Tags:     make([]entity.Tag, len(packXmlInfo.Tags.Tags)),
 			}
 
-			if len(packXMLInfo.Info.Authors.Authors) > 0 {
+			if len(packXmlInfo.Info.Authors.Authors) > 0 {
 				res.Author = entity.Author{
-					Nickname: packXMLInfo.Info.Authors.Authors[0],
+					Nickname: packXmlInfo.Info.Authors.Authors[0],
 				}
 			}
 
-			for i := range packXMLInfo.Tags.Tags {
+			for i := range packXmlInfo.Tags.Tags {
 				res.Tags[i] = entity.Tag{
-					Name: packXMLInfo.Tags.Tags[i],
+					Name: packXmlInfo.Tags.Tags[i],
 				}
 			}
 
-			res.CreationDate, err = time.Parse("02.01.2006", packXMLInfo.Date)
+			res.CreationDate, err = time.Parse("02.01.2006", packXmlInfo.Date)
 
 			return res, err
 		}
 	}
 
-	return entity.Pack{}, ErrNoContentXMLFile
+	return entity.Pack{}, errors.New("incorrect pack file structure: no content.xml file")
 }

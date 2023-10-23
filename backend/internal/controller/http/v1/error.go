@@ -10,6 +10,5 @@ func responseWithError(ctx echo.Context, code int, msg string, err error) error 
 	if ctx.Echo().Debug {
 		response.Error = err.Error()
 	}
-
 	return ctx.JSON(code, response)
 }

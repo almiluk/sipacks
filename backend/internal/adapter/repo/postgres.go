@@ -21,7 +21,6 @@ func NewPGRepo(url string, opts ...postgres.Option) (*PostgresRepo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("PostgresRepo - New - postgres.New: %w", err)
 	}
-
 	return &PostgresRepo{
 		Postgres: pg,
 	}, nil
@@ -67,15 +66,14 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 	sql, args, err := pg.Builder.
 		Insert("pack").
 		Columns("name", "author_id", "creation_date", "file_size", "downloads_num", "guid").
-		Values(pack.Name, pack.Author.ID, pack.CreationDate, pack.FileSize, 0, pack.GUID).
+		Values(pack.Name, pack.Author.Id, pack.CreationDate, pack.FileSize, 0, pack.GUID).
 		Suffix("RETURNING \"id\"").
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("PostgresRepo - AddPack - Insert: %w", err)
 	}
 
-	err = tx.QueryRow(ctx, sql, args...).Scan(&pack.ID)
-
+	err = tx.QueryRow(ctx, sql, args...).Scan(&pack.Id)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 		return fmt.Errorf("PostgresRepo - AddPack - tx.QueryRow: %w", entity.ErrPackAlreadyExists)
@@ -90,10 +88,10 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 	// Link tags to pack
 	packTags := [][]interface{}{}
 	for _, tag := range pack.Tags {
-		packTags = append(packTags, []interface{}{pack.ID, tag.ID})
+		packTags = append(packTags, []interface{}{pack.Id, tag.Id})
 	}
 
-	_, err = tx.CopyFrom(
+	insertedTagsCnt, err := tx.CopyFrom(
 		ctx,
 		pgx.Identifier{"pack_tag"},
 		[]string{"pack_id", "tag_id"},
@@ -102,10 +100,11 @@ func (pg *PostgresRepo) AddPack(ctx context.Context, pack *entity.Pack) error {
 	if err != nil {
 		return fmt.Errorf("PostgresRepo - AddPack - tx.CopyFrom: %w", err)
 	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return fmt.Errorf("PostgresRepo - AddPack - tx.Commit: %w", err)
+	if insertedTagsCnt != int64(len(pack.Tags)) {
+		return fmt.Errorf("PostgresRepo - AddPack - tx.CopyFrom: insertedTagsCnt != len(pack.Tags)")
 	}
+
+	tx.Commit(ctx)
 
 	return nil
 }
@@ -125,15 +124,12 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	if filter.Name != nil {
 		builder = builder.Where("LOWER(pack.name) LIKE '%' || ?|| '%'", filter.Name)
 	}
-
 	if filter.Author != nil {
 		builder = builder.Where("author.nickname = ?", filter.Author)
 	}
-
 	if filter.MinCreationDate != nil {
 		builder = builder.Where("pack.creation_date >= ?", filter.MinCreationDate)
 	}
-
 	if filter.MaxCreationDate != nil {
 		builder = builder.Where("pack.creation_date <= ?", filter.MaxCreationDate)
 	}
@@ -146,12 +142,11 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 			Having("COUNT(pack_tag.tag_id) = ?", len(filter.Tags))
 	}
 
-	switch {
-	case filter.SortBy == nil || *filter.SortBy == "":
+	if filter.SortBy == nil || *filter.SortBy == "" {
 		builder = builder.OrderBy("pack.id")
-	case *filter.SortBy == "creation_date":
+	} else if *filter.SortBy == "creation_date" {
 		builder = builder.OrderBy("pack.creation_date DESC")
-	case *filter.SortBy == "downloads_num":
+	} else if *filter.SortBy == "downloads_num" {
 		builder = builder.OrderBy("pack.downloads_num DESC")
 	}
 
@@ -170,7 +165,7 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	packs := []entity.Pack{}
 	for rows.Next() {
 		err = rows.Scan(
-			&pack.ID, &pack.Name, &pack.Author.ID, &pack.Author.Nickname,
+			&pack.Id, &pack.Name, &pack.Author.Id, &pack.Author.Nickname,
 			&pack.CreationDate, &pack.FileSize, &pack.DownloadsNum, &pack.GUID,
 		)
 
@@ -182,15 +177,13 @@ func (pg *PostgresRepo) GetPacks(ctx context.Context, filter entity.PackFilter) 
 	}
 
 	for i := range packs {
-		packs[i].Tags, err = pg.getPackTags(ctx, tx, packs[i].ID)
+		packs[i].Tags, err = pg.getPackTags(ctx, tx, packs[i].Id)
 		if err != nil {
 			return nil, fmt.Errorf("PostgresRepo - GetPacks - pg.getPackTags: %w", err)
 		}
 	}
 
-	if err = tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("PostgresRepo - GetPacks - tx.Commit: %w", err)
-	}
+	tx.Commit(ctx)
 
 	return packs, nil
 }
@@ -201,11 +194,9 @@ func (pg *PostgresRepo) getAuthor(ctx context.Context, tx pgx.Tx, nickname strin
 		return entity.Author{}, fmt.Errorf("PostgresRepo - getAuthor - Select: %w", err)
 	}
 
-	row := tx.QueryRow(ctx, sql, args...)
-
 	var author entity.Author
-	err = row.Scan(&author.ID, &author.Nickname)
-
+	row := tx.QueryRow(ctx, sql, args...)
+	err = row.Scan(&author.Id, &author.Nickname)
 	return author, err
 }
 
@@ -215,11 +206,10 @@ func (pg *PostgresRepo) addAuthor(ctx context.Context, tx pgx.Tx, author *entity
 		return fmt.Errorf("PostgresRepo - addAuthor - Insert: %w", err)
 	}
 
-	err = tx.QueryRow(ctx, sql, args...).Scan(&author.ID)
+	err = tx.QueryRow(ctx, sql, args...).Scan(&author.Id)
 	if err != nil {
 		return fmt.Errorf("PostgresRepo - addAuthor - tx.QueryRow: %w", err)
 	}
-
 	return err
 }
 
@@ -229,10 +219,9 @@ func (pg *PostgresRepo) getTag(ctx context.Context, tx pgx.Tx, name string) (ent
 		return entity.Tag{}, fmt.Errorf("PostgresRepo - getTag - Select: %w", err)
 	}
 
-	row := tx.QueryRow(ctx, sql, args...)
-
 	var tag entity.Tag
-	err = row.Scan(&tag.ID, &tag.Name)
+	row := tx.QueryRow(ctx, sql, args...)
+	err = row.Scan(&tag.Id, &tag.Name)
 	return tag, err
 }
 
@@ -242,11 +231,10 @@ func (pg *PostgresRepo) addTag(ctx context.Context, tx pgx.Tx, tag *entity.Tag) 
 		return fmt.Errorf("PostgresRepo - addTag - Insert: %w", err)
 	}
 
-	err = tx.QueryRow(ctx, sql, args...).Scan(&tag.ID)
+	err = tx.QueryRow(ctx, sql, args...).Scan(&tag.Id)
 	if err != nil {
 		return fmt.Errorf("PostgresRepo - addTag - tx.QueryRow: %w", err)
 	}
-
 	return err
 }
 
@@ -269,11 +257,10 @@ func (pg *PostgresRepo) getPackTags(ctx context.Context, tx pgx.Tx, id uint32) (
 	tag := entity.Tag{}
 	tags := []entity.Tag{}
 	for i := 0; rows.Next(); i++ {
-		err = rows.Scan(&tag.ID, &tag.Name)
+		err = rows.Scan(&tag.Id, &tag.Name)
 		if err != nil {
 			return nil, fmt.Errorf("PostgresRepo - getPackTags - rows.Scan: %w", err)
 		}
-
 		tags = append(tags, tag)
 	}
 
