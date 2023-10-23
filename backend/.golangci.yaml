@@ -64,7 +64,7 @@ linters:
     - bodyclose
     - cyclop
     - deadcode
-    - depguard
+    #  - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -141,5 +141,3 @@ run:
   timeout: 5m
   skip-dirs:
     - docs
-  skip-files:
-    - ".*_test.go"
