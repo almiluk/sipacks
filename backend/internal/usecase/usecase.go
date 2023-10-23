@@ -48,8 +48,9 @@ func (uc *SIPacksUC) AddPack(ctx context.Context, fileReader entity.ReaderReadAt
 	// TODO: revert changes if file saving goes wrong
 
 	// Add pack file to the storage
-	filepath := uc.GetPackFilename(ctx, pack.GUID)
-	file, err := os.Create(filepath)
+	storedFilepath := uc.GetPackFilename(ctx, pack.GUID)
+
+	file, err := os.Create(storedFilepath)
 	if err != nil {
 		return entity.Pack{}, err
 	}
@@ -72,11 +73,12 @@ func (uc *SIPacksUC) GetPacks(ctx context.Context, filter entity.PackFilter) ([]
 	return packs, nil
 }
 
-func (us *SIPacksUC) GetPackFilename(ctx context.Context, guid string) string {
-	filename := filepath.Join(us.absFileStoragePath, guid+".siq")
+func (uc *SIPacksUC) GetPackFilename(_ context.Context, guid string) string {
+	filename := filepath.Join(uc.absFileStoragePath, guid+".siq")
+
 	return filename
 }
 
-func (us *SIPacksUC) IncreaseDownloadsCounter(ctx context.Context, guid string) error {
-	return us.repo.IncreaseDownloadsCounter(ctx, guid)
+func (uc *SIPacksUC) IncreaseDownloadsCounter(ctx context.Context, guid string) error {
+	return uc.repo.IncreaseDownloadsCounter(ctx, guid)
 }
