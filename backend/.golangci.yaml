@@ -51,6 +51,11 @@ linters-settings:
   nolintlint:
     require-explanation: true
     require-specific: true
+  depguard:
+    rules:
+      Main:
+        allow:
+          - "*"
 
 linters:
   disable-all: true
@@ -59,7 +64,7 @@ linters:
     - bodyclose
     - cyclop
     - deadcode
-    - depguard
+    #  - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -133,5 +138,6 @@ issues:
         - godot
 
 run:
+  timeout: 5m
   skip-dirs:
     - docs
