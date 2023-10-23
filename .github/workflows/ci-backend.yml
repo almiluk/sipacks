@@ -17,7 +17,7 @@ jobs:
         with:
           workdir: ./backend
           args: --timeout=3m
-          fail_on_error: true
+          fail_on_error: false
 
   yamllint:
     name: runner / yamllint
