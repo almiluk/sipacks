@@ -1,2 +1,0 @@
-ALTER TABLE pack ADD guid VARCHAR(36);
-ALTER TABLE pack ADD UNIQUE (guid);

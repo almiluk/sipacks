@@ -77,7 +77,6 @@ func TestPostgresRepo_AddPack(t *testing.T) {
 		FileSize:     0,
 		DownloadsNum: 0,
 		Tags:         tags,
-		GUID:         "fake-guid",
 	}
 
 	err = pgRepo.AddPack(ctx, &pack)
@@ -194,7 +193,6 @@ func TestPostgresRepo_GetPacks(t *testing.T) {
 			FileSize:     0,
 			DownloadsNum: 0,
 			Tags:         []entity.Tag{{Name: "tag1"}, {Name: "tag2"}},
-			GUID:         "fake-guid1",
 		},
 		{
 			Name:         "name2",
@@ -203,7 +201,6 @@ func TestPostgresRepo_GetPacks(t *testing.T) {
 			FileSize:     0,
 			DownloadsNum: 0,
 			Tags:         []entity.Tag{{Name: "tag1"}},
-			GUID:         "fake-guid2",
 		},
 		{
 			Name:         "name3",
@@ -212,7 +209,6 @@ func TestPostgresRepo_GetPacks(t *testing.T) {
 			FileSize:     0,
 			DownloadsNum: 0,
 			Tags:         []entity.Tag{{Name: "tag2"}},
-			GUID:         "fake-guid3",
 		},
 	}
 

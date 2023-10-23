@@ -72,9 +72,6 @@ definitions:
       file_size:
         example: 0
         type: integer
-      guid:
-        example: 00000000-0000-0000-0000-000000000000
-        type: string
       name:
         example: name
         type: string
@@ -145,19 +142,15 @@ paths:
       summary: Add pack
       tags:
       - packs
-  /packs/{guid}:
+  /packs/{id}:
     get:
       description: Download questions pack
       parameters:
-      - description: Pack guid
+      - description: Pack ID
         in: path
-        name: guid
+        name: id
         required: true
         type: integer
-      - description: Wanted package file name
-        in: query
-        name: filename
-        type: string
       produces:
       - application/octet-stream
       responses:
