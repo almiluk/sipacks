@@ -19,7 +19,6 @@ type PackListResponse struct {
 }
 
 type PackResponse struct {
-	Id           uint32    `json:"id" example:"0"`
 	Name         string    `json:"name" example:"name"`
 	Author       string    `json:"author" example:"author"`
 	CreationDate time.Time `json:"creation_date" example:"creation_date"`

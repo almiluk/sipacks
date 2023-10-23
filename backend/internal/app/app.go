@@ -9,12 +9,10 @@ import (
 	"syscall"
 
 	"github.com/almiluk/sipacks/config"
-	"github.com/almiluk/sipacks/internal/adapter/repo"
 	v1 "github.com/almiluk/sipacks/internal/controller/http/v1"
 	"github.com/almiluk/sipacks/internal/usecase"
 	"github.com/almiluk/sipacks/pkg/httpserver"
 	"github.com/almiluk/sipacks/pkg/logger"
-	"github.com/almiluk/sipacks/pkg/postgres"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,14 +21,14 @@ func Run(cfg *config.Config) {
 	l := logger.New(cfg.Log.Level)
 
 	// Repository
-	pg, err := repo.NewPGRepo(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
+	/*pg, err := postgres.New(cfg.PG.URL, postgres.MaxPoolSize(cfg.PG.PoolMax))
 	if err != nil {
 		l.Fatal(fmt.Errorf("app - Run - postgres.New: %w", err))
 	}
-	defer pg.Close()
+	defer pg.Close()*/
 
 	// Use case
-	translationUseCase := usecase.New(pg)
+	translationUseCase := usecase.New()
 
 	// HTTP Server
 	handler := echo.New()
@@ -40,6 +38,8 @@ func Run(cfg *config.Config) {
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	var err error
 
 	log.Printf("Config: %+v\n", cfg)
 

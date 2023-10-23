@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/joho/godotenv"
-
 	// migrate tools
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -22,11 +20,6 @@ const (
 )
 
 func init() {
-	err := godotenv.Load("./config/.env")
-	if err != nil {
-		log.Print("Error loading .env file")
-	}
-
 	databaseURL, ok := os.LookupEnv("PG_URL")
 	if !ok || len(databaseURL) == 0 {
 		log.Fatalf("migrate: environment variable not declared: PG_URL")
@@ -36,6 +29,7 @@ func init() {
 
 	var (
 		attempts = _defaultAttempts
+		err      error
 		m        *migrate.Migrate
 	)
 
@@ -57,14 +51,7 @@ func init() {
 	err = m.Up()
 	defer m.Close()
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Printf("Migrate: up error: %s", err)
-		err = m.Down()
-		if err != nil {
-			log.Fatalf("Migrate: down error: %s", err)
-		} else {
-			log.Printf("Migrate: down success")
-			return
-		}
+		log.Fatalf("Migrate: up error: %s", err)
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
