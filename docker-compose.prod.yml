@@ -1,0 +1,38 @@
+version: '3.9'
+services:
+
+  postgres:
+    container_name: sipacks-postgres
+    image: postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'pass'
+      POSTGRES_DB: 'postgres'
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sipacks-backend
+    image: sipacks-backend
+    environment:
+      PG_URL: 'postgres://user:pass@postgres:5432/postgres'
+      HTTP_DEBUG: 'false'
+    depends_on:
+      - postgres
+
+  frontend:
+    container_name: sipacks-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - 3001:80
+    depends_on:
+      - backend
+
+volumes:
+  pg-data:
+
