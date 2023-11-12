@@ -25,6 +25,8 @@ import (
 func NewRouter(handler *echo.Echo, cfg config.HTTP, l logger.Interface, uc ISIPacksUC) {
 	handler.Debug = cfg.Debug
 
+	handler.Use(middleware.CORS())
+
 	// Options
 	handler.Use(middleware.Logger())
 	handler.Use(middleware.Recover())

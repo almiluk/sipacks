@@ -39,10 +39,8 @@ func (uc *SIPacksUC) AddPack(ctx context.Context, fileReader entity.ReaderReadAt
 
 	// Add pack metadata to the database
 	err = uc.repo.AddPack(ctx, &pack)
-	if errors.Is(err, entity.ErrPackAlreadyExists) {
+	if err != nil {
 		return pack, err
-	} else if err != nil {
-		return entity.Pack{}, err
 	}
 
 	// TODO: revert changes if file saving goes wrong

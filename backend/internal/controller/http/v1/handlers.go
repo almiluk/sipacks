@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -48,7 +49,9 @@ func (r SIPacksRouter) addPack(ctx echo.Context) error {
 	defer file.Close()
 
 	pack, err := r.uc.AddPack(ctx.Request().Context(), file, packFile.Size)
-	if err != nil {
+	if errors.Is(err, entity.ErrPackAlreadyExists) {
+		return responseWithError(ctx, http.StatusConflict, "Such pack already exist", errors.New(""))
+	} else if err != nil {
 		return responseWithError(ctx, http.StatusInternalServerError, "Can't add pack", err)
 	}
 
