@@ -1,12 +1,14 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/almiluk/sipacks/internal/controller/http/v1/models"
 	"github.com/almiluk/sipacks/internal/entity"
-	"github.com/labstack/echo/v4"
 )
 
 type SIPacksRouter struct {
@@ -48,7 +50,9 @@ func (r SIPacksRouter) addPack(ctx echo.Context) error {
 	defer file.Close()
 
 	pack, err := r.uc.AddPack(ctx.Request().Context(), file, packFile.Size)
-	if err != nil {
+	if errors.Is(err, entity.ErrNoContentXMLFile) {
+		return responseWithError(ctx, http.StatusBadRequest, "Pack file must contain content.xml file", err)
+	} else if err != nil {
 		return responseWithError(ctx, http.StatusInternalServerError, "Can't add pack", err)
 	}
 

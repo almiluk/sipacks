@@ -5,12 +5,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/almiluk/sipacks/config"
-
 	// Swagger docs.
 	_ "github.com/almiluk/sipacks/docs"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
+	"github.com/almiluk/sipacks/config"
 	"github.com/almiluk/sipacks/pkg/logger"
 )
 

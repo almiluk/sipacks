@@ -5,8 +5,8 @@ import (
 )
 
 type PackListRequest struct {
-	Name            *string    `json:"name" example:"name" query:"name"`
-	Author          *string    `json:"author" example:"author" query:"author"`
+	Name            *string    `json:"name" example:"name" query:"name" maxLength:"50"`
+	Author          *string    `json:"author" example:"author" query:"author" maxLength:"50"`
 	Tags            *string    `json:"tags" example:"tag1,tag2" query:"tags"`
 	MinCreationDate *time.Time `json:"min_creation_date" example:"01.01.1970" query:"min_creation_date"`
 	MaxCreationDate *time.Time `json:"max_creation_date" example:"01.01.1970" query:"max_creation_date"`
