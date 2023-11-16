@@ -3,19 +3,18 @@ package usecase
 import (
 	"archive/zip"
 	"encoding/xml"
-	"errors"
 	"io"
+	"strings"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/almiluk/sipacks/internal/entity"
 )
 
 const (
 	packInfoFileName = "content.xml"
-)
-
-var (
-	ErrNoContentXMLFile = errors.New("incorrect pack file structure: no content.xml file")
 )
 
 // godoc PackFileXMLInfo
@@ -48,46 +47,56 @@ func GetPackFileInfo(fileReader io.ReaderAt, fileSize int64) (entity.Pack, error
 	}
 
 	for _, file := range zipReader.File {
-		if file.Name == packInfoFileName {
-			f, err := file.Open()
-			if err != nil {
-				return entity.Pack{}, err
-			}
-
-			byteValue, err := io.ReadAll(f)
-			if err != nil {
-				return entity.Pack{}, err
-			}
-
-			packXMLInfo := PackFileXMLInfo{}
-			if err = xml.Unmarshal(byteValue, &packXMLInfo); err != nil {
-				return entity.Pack{}, err
-			}
-
-			res := entity.Pack{
-				Name:     packXMLInfo.Name,
-				FileSize: uint32(fileSize),
-				GUID:     packXMLInfo.ID,
-				Tags:     make([]entity.Tag, len(packXMLInfo.Tags.Tags)),
-			}
-
-			if len(packXMLInfo.Info.Authors.Authors) > 0 {
-				res.Author = entity.Author{
-					Nickname: packXMLInfo.Info.Authors.Authors[0],
-				}
-			}
-
-			for i := range packXMLInfo.Tags.Tags {
-				res.Tags[i] = entity.Tag{
-					Name: packXMLInfo.Tags.Tags[i],
-				}
-			}
-
-			res.CreationDate, err = time.Parse("02.01.2006", packXMLInfo.Date)
-
-			return res, err
+		if file.Name != packInfoFileName {
+			continue
 		}
+
+		f, err := file.Open()
+		if err != nil {
+			return entity.Pack{}, err
+		}
+
+		byteValue, err := io.ReadAll(f)
+		if err != nil {
+			return entity.Pack{}, err
+		}
+
+		packXMLInfo := PackFileXMLInfo{}
+		if err = xml.Unmarshal(byteValue, &packXMLInfo); err != nil {
+			return entity.Pack{}, err
+		}
+
+		if len(packXMLInfo.Tags.Tags) == 1 {
+			// If pack creator added tags wrong (into one tag field, separated by ",")
+			// split it add save as separated tags
+			packXMLInfo.Tags.Tags = strings.Split(packXMLInfo.Tags.Tags[0], ",")
+		}
+
+		res := entity.Pack{
+			Name:     packXMLInfo.Name,
+			FileSize: uint32(fileSize),
+			GUID:     packXMLInfo.ID,
+			Tags:     make([]entity.Tag, len(packXMLInfo.Tags.Tags)),
+		}
+
+		if len(packXMLInfo.Info.Authors.Authors) > 0 {
+			res.Author = entity.Author{
+				Nickname: packXMLInfo.Info.Authors.Authors[0],
+			}
+		}
+
+		caser := cases.Title(language.English)
+
+		for i := range packXMLInfo.Tags.Tags {
+			res.Tags[i] = entity.Tag{
+				Name: caser.String(strings.Trim(packXMLInfo.Tags.Tags[i], " ")),
+			}
+		}
+
+		res.CreationDate, err = time.Parse("02.01.2006", packXMLInfo.Date)
+
+		return res, err
 	}
 
-	return entity.Pack{}, ErrNoContentXMLFile
+	return entity.Pack{}, entity.ErrNoContentXMLFile
 }

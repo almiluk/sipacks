@@ -1,6 +1,9 @@
 linters-settings:
   gci:
-    local-prefixes: github.com/evrone/go-clean-template
+    local-prefixes: github.com/almiluk/sipacks
+    sections:
+      - standard
+      - default
   dupl:
     threshold: 100
   errorlint:
